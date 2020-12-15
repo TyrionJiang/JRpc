@@ -9,10 +9,11 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * 程序启动，将{@link RpcService}修饰的服务完成注册
@@ -33,10 +34,12 @@ public class ServiceListener implements ApplicationListener<ApplicationStartedEv
     public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
         ConfigurableApplicationContext context = applicationStartedEvent.getApplicationContext();
         try {
-            RpcServer rpcServer = new RpcServer(zkRegisterCenter, InetAddress.getLocalHost().getHostAddress(), port);
-            List<Object> services = new ArrayList<>(context.getBeansWithAnnotation(RpcService.class).values());
-            rpcServer.register(services);
-            rpcServer.expose();
+            Collection<Object> services = context.getBeansWithAnnotation(RpcService.class).values();
+            if(!CollectionUtils.isEmpty(services)){
+                RpcServer rpcServer = new RpcServer(zkRegisterCenter, InetAddress.getLocalHost().getHostAddress(), port);
+                rpcServer.register(new ArrayList<>(services));
+                rpcServer.expose();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
