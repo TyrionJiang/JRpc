@@ -3,6 +3,7 @@ package com.tyrion.jrpc.discover;
 import com.tyrion.jrpc.discover.loadbalance.ILoadBalance;
 import com.tyrion.jrpc.discover.loadbalance.RandomLoadBalance;
 import com.tyrion.jrpc.register.IregisterCenter;
+import com.tyrion.jrpc.util.RpcThreadExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -40,8 +41,8 @@ public class ZkServerDiscover implements IServerDiscover {
             serviceAddresses = zkRegisterCenter.getNodes(serviceName);
             if (!CollectionUtils.isEmpty(serviceAddresses)) {
                 SERVICE_NODE_CACHE.put(serviceName, serviceAddresses);
-                zkRegisterCenter.monitor(serviceName);
             }
+            RpcThreadExecutor.execute(() -> zkRegisterCenter.monitor(serviceName));
         } else {
             serviceAddresses = SERVICE_NODE_CACHE.get(serviceName);
         }
